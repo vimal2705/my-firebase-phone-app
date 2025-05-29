@@ -12,18 +12,33 @@ const PhoneAuth = () => {
 
   // Setup reCAPTCHA
   const setupRecaptcha = () => {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        size: 'invisible',
-        callback: (response) => {
-          console.log('reCAPTCHA solved');
+    if (typeof window !== 'undefined' && !window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(
+        'recaptcha-container',
+        {
+          size: 'invisible',
+          callback: (response) => {
+            console.log('reCAPTCHA solved');
+          },
+          'expired-callback': () => {
+            console.log('reCAPTCHA expired');
+          }
         },
-        'expired-callback': () => {
-          console.log('reCAPTCHA expired');
-        }
-      });
+        auth
+      );
+      window.recaptchaVerifier.render();
     }
   };
+
+  // Clean up reCAPTCHA on unmount
+  React.useEffect(() => {
+    return () => {
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+        delete window.recaptchaVerifier;
+      }
+    };
+  }, []);
 
   // Send OTP
   const sendOtp = async () => {
